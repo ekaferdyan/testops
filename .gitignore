@@ -1,0 +1,125 @@
+# ============================================================
+# 🧠 TestOps Dashboard (Ultimate Edition)
+# Backend (Go + Fiber + PostgreSQL) + Frontend (React + Tailwind)
+# ============================================================
+
+# === 🦴 GENERAL ===
+.DS_Store
+Thumbs.db
+*.log
+*.tmp
+*.bak
+*.swp
+*.swo
+.env
+.env.local
+.env.development
+.env.production
+.env.test
+
+# ============================================================
+# 🦴 BACKEND (Golang + Fiber)
+# ============================================================
+
+/backend/bin/
+/backend/build/
+/backend/coverage/
+/backend/tmp/
+/backend/.env
+/backend/go.sum
+/backend/go.work
+/backend/go.work.sum
+/backend/uploads/
+/backend/*.exe
+/backend/*.out
+/backend/*.log
+
+# Binary / compiled output
+/backend/main
+/backend/*.exe
+/backend/*.test
+/backend/*.dll
+/backend/*.so
+/backend/*.dylib
+
+# IDE / Editor
+/backend/.idea/
+/backend/.vscode/
+/backend/*.iml
+
+# ============================================================
+# 🧠 FRONTEND (React + Tailwind)
+# ============================================================
+
+/frontend/node_modules/
+/frontend/dist/
+/frontend/build/
+/frontend/.cache/
+/frontend/.next/
+/frontend/.nuxt/
+/frontend/.env
+/frontend/.env.local
+/frontend/.env.development
+/frontend/.env.production
+/frontend/.env.test
+/frontend/yarn-error.log
+/frontend/npm-debug.log
+/frontend/package-lock.json
+/frontend/pnpm-lock.yaml
+/frontend/.eslintcache
+
+# Tailwind / Vite
+/frontend/.vite
+/frontend/.turbo
+
+# IDE / Editor
+/frontend/.idea/
+/frontend/.vscode/
+/frontend/*.iml
+
+# ============================================================
+# 🧱 DATABASE & DOCKER
+# ============================================================
+
+/pgdata/
+/docker-compose.override.yml
+/docker/postgres-data/
+/docker/volumes/
+/docker/tmp/
+/docker/logs/
+
+# ============================================================
+# 🧩 SYSTEM / OS
+# ============================================================
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# ============================================================
+# 🧰 TESTING / CI
+# ============================================================
+
+/coverage/
+/reports/
+/test-results/
+/*.coverage
+/*.lcov
+/*.html
+
+# ============================================================
+# 🧱 LOGS / CACHE
+# ============================================================
+
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
