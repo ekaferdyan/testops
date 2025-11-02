@@ -4,77 +4,89 @@ package services
 import (
 	"errors"
 	"time"
+
 	// Semua import yang tidak terpakai akan dihapus
 	// "golang.org/x/crypto/bcrypt" - Dihapus
-	// "testops-dashboard/backend/config" - Dihapus
-	// "testops-dashboard/backend/models" - Dihapus
+	"testops-dashboard/backend/database"
+	"testops-dashboard/backend/models"
+	"testops-dashboard/backend/utils"
+
+	"golang.org/x/crypto/bcrypt"
 )
 
 // --- Definisi Error Bisnis (Tetap ada, untuk uji coba error handling) ---
 var (
-	ErrEmailAlreadyExists = errors.New("email sudah terdaftar")
-	ErrUserNotFound       = errors.New("pengguna tidak ditemukan")
-	ErrWrongPassword      = errors.New("kata sandi salah")
+	ErrUsernameAlreadyExists = errors.New("username sudah terdaftar")
+	ErrUsernameSpecialChar   = errors.New("username tidak boleh mengandung spesial karakter")
 )
 
-// --- DTO (Data Transfer Object) untuk Request ---
+// --- DTO (Data Transfer Object) untuk Payload ---
 // Ini tetap harus ada, karena controller Anda menggunakannya
 type RegisterRequest struct {
-	Email    string `json:"email"    validate:"required,email"`
-	Password string `json:"password" validate:"required,min=8"`
+	Username string `json:"username"  validate:"required,min=6,max=30"`
+	Password string `json:"password" validate:"required,min=8,max=32"`
 }
 
 type LoginRequest struct {
-	Email    string `json:"email"    validate:"required,email"`
+	Username string `json:"email"    validate:"required,email"`
 	Password string `json:"password" validate:"required"`
 }
 
 // --- DTO (Data Transfer Object) untuk Response ---
 type UserResponse struct {
 	ID        uint      `json:"id"`
-	Email     string    `json:"email"`
+	Username  string    `json:"username"`
 	CreatedAt time.Time `json:"created_at"`
 }
 
-// --- Logika Bisnis (SIMPLIFIED / DUMMY) ---
+// Wrapper Response fungsi nya untuk mengubah model user menjadi response dan bisa dicustomize untuk case ini password tidak kita tampilkan untuk menjaga kerahasiaan
+func ToUserResponse(users models.User) UserResponse {
+	return UserResponse{
+		ID:        users.ID,
+		Username:  users.Username,
+		CreatedAt: users.CreatedAt,
+	}
+}
 
 func RegisterUser(request RegisterRequest) (UserResponse, error) {
+	//1. Validasi Bisnis : Check Duplicate Username di Gorm
+	var existingUser models.User
 
-	// --- SIMULASI LOGIKA ---
-
-	// Jika email-nya "tes@error.com", kita simulasikan email sudah ada.
-	if request.Email == "error@fail.com" {
-		return UserResponse{}, ErrEmailAlreadyExists
+	//1. Verify Untuk Username Already Exist
+	result := database.ConnectDB().Where("username = ?", request.Username).First(&existingUser)
+	if result.RowsAffected > 0 {
+		return UserResponse{}, ErrUsernameAlreadyExists
 	}
 
-	// Jika tidak, anggap sukses.
-	dummyResponse := UserResponse{
-		ID:        uint(time.Now().Unix()), // ID palsu
-		Email:     request.Email,
-		CreatedAt: time.Now(),
+	//2. Verify Username Mengandung Special Karakter
+	// Log hasil dari fungsi utilitas
+	if utils.ContainsSpecialCharacters(request.Username) {
+		return UserResponse{}, ErrUsernameSpecialChar
 	}
 
-	// Sukses: Kembalikan data palsu dan error nil
-	return dummyResponse, nil
+	//3. Logika Inti : Hashing Password
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(request.Password), bcrypt.DefaultCost)
+	if err != nil {
+		return UserResponse{}, err
+	}
+
+	//4. Logika Inti : Persiapan Data Model
+	newUser := models.User{
+		Username: request.Username,
+		Password: string(hashedPassword),
+		// CreatedAt, ID akan diisi oleh GORM
+	}
+
+	// 5. Logika Inti : Simpan ke Database
+	if result := database.ConnectDB().Create(&newUser); result.Error != nil {
+		return UserResponse{}, result.Error // Error saat menyimpan
+	}
+
+	// 6. Kembalikan response yang sudah diformat
+	return ToUserResponse(newUser), nil
 }
 
 func LoginUser(request LoginRequest) (string, error) {
 
-	// --- SIMULASI LOGIKA ---
-
-	// 1. Simulasikan Not Found
-	if request.Email == "notfound@user.com" {
-		return "", ErrUserNotFound
-	}
-
-	// 2. Simulasikan Wrong Password
-	if request.Password == "salah" {
-		return "", ErrWrongPassword
-	}
-
-	// 3. Simulasikan Sukses (Kembalikan string token palsu)
-	tokenPalsu := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxMjN9.SflKxwR"
-
-	// Sukses: Kembalikan token palsu dan error nil
-	return tokenPalsu, nil
+	return "", nil
 }

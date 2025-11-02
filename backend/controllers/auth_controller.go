@@ -15,50 +15,59 @@ import (
 
 // === KODE CONTROLLER ===
 
-func Register(c *fiber.Ctx) error {
+func RegisterUserHandler(c *fiber.Ctx) error {
+	//1. Parsing
 	var request services.RegisterRequest
-
-	// 2. Parsing
 	if err := c.BodyParser(&request); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"status": "error", "message": "Input JSON tidak valid", "data": err.Error(),
+			"message": "Input JSON tidak valid",
+			"errors":  err.Error(),
 		})
 	}
 
-	// 3. Validasi Format
-	if err := platformValidator.Validate.Struct(request); err != nil {
-		if validationErrors, ok := err.(validator.ValidationErrors); ok {
-			translatedErrors := platformValidator.TranslateError(validationErrors)
+	//2. Validate Structur untuk mendapatkan message error karena pakai package go
+	err := platformValidator.Validate.Struct(request)
+
+	//3. Validasi Input "Fail Fast" (Tugas "Satpam")
+	// Menggunakan validator
+	if errorMessage := platformValidator.TranslateError(err); errorMessage != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"message": "Registrasi gagal",
+			"errors":  errorMessage,
+		})
+	}
+
+	//4. Panggil Service (Jika lolos)
+	userResponse, serviceErr := services.RegisterUser(request)
+
+	if serviceErr != nil {
+		//Validasi Username Contains Special Karakter
+		if errors.Is(serviceErr, services.ErrUsernameSpecialChar) {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-				"status": "error", "message": "Validasi gagal", "data": translatedErrors,
+				"message": "Registrasi gagal",
+				"errors":  serviceErr.Error(),
 			})
 		}
+
+		//Validasi Username Already Exists
+		if errors.Is(serviceErr, services.ErrUsernameAlreadyExists) {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"message": "Registrasi gagal",
+				"errors":  serviceErr.Error(),
+			})
+		}
+
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"status": "error", "message": "Kesalahan validasi", "data": err.Error(),
+			"message": "Terjadi kesalahan internal",
+			"errors":  serviceErr.Error(),
 		})
 	}
 
-	// 4. Delegasikan ke "Otak Bisnis" (Service Layer) - Menggunakan logic dummy/simpel
-	userResponse, err := services.RegisterUser(request)
-	if err != nil {
-		// Cek apakah ini error BISNIS yang kita kenal
-		if errors.Is(err, services.ErrEmailAlreadyExists) { // <-- Mengecek error dari service dummy
-			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{ // 400 Bad Request
-				"status": "error", "message": err.Error(), // Pesan: "email sudah terdaftar"
-			})
-		}
-		// Jika bukan, ini error TEKNIS
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{ // 500 Internal Error
-			"status": "error", "message": "Server gagal mendaftarkan pengguna",
-		})
-	}
-
-	// 5. Sukses!
-	return c.Status(fiber.StatusCreated).JSON(fiber.Map{ // 201 Created
-		"status":  "success",
-		"message": "User registered successfully",
-		"data":    userResponse, // Data dummy akan dikembalikan
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"message": "Registrasi berhasil",
+		"data":    userResponse,
 	})
+
 }
 
 func Login(c *fiber.Ctx) error {
@@ -88,16 +97,16 @@ func Login(c *fiber.Ctx) error {
 	token, err := services.LoginUser(request)
 	if err != nil {
 		// Cek error BISNIS
-		if errors.Is(err, services.ErrUserNotFound) { // <-- Mengecek user not found (dummy logic)
-			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{ // 404 Not Found
-				"status": "error", "message": err.Error(),
-			})
-		}
-		if errors.Is(err, services.ErrWrongPassword) { // <-- Mengecek wrong password (dummy logic)
-			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{ // 401 Unauthorized
-				"status": "error", "message": err.Error(),
-			})
-		}
+		// if errors.Is(err, services.ErrUserNotFound) { // <-- Mengecek user not found (dummy logic)
+		// 	return c.Status(fiber.StatusNotFound).JSON(fiber.Map{ // 404 Not Found
+		// 		"status": "error", "message": err.Error(),
+		// 	})
+		// }
+		// if errors.Is(err, services.ErrWrongPassword) { // <-- Mengecek wrong password (dummy logic)
+		// 	return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{ // 401 Unauthorized
+		// 		"status": "error", "message": err.Error(),
+		// 	})
+		// }
 		// Error TEKNIS (dummy logic)
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{ // 500 Internal Error
 			"status": "error", "message": "Server gagal memproses login",

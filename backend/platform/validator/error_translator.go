@@ -12,19 +12,29 @@ type ErrorResponse struct {
 	Message string `json:"message"`
 }
 
-// TranslateError menerjemahkan error teknis menjadi []ErrorResponse yang rapi
+// TranslateError menerjemahkan error teknis (yang dikembalikan oleh package validator)
+// menjadi []ErrorResponse yang rapi, berisi Field dan Message yang user-friendly.
 func TranslateError(err error) []ErrorResponse {
+	// Inisialisasi slice kosong untuk menampung semua pesan error.
 	var errors []ErrorResponse
 
+	// 1. Cek Tipe Error: Memastikan error yang masuk adalah benar-benar
+	//    error validasi (validator.ValidationErrors).
 	if validationErrors, ok := err.(validator.ValidationErrors); ok {
+		// 2. Iterasi Error: Melakukan loop untuk setiap field yang gagal validasi.
 		for _, fe := range validationErrors {
+			// 3. Append Error: Menambahkan objek ErrorResponse baru ke slice 'errors'.
 			errors = append(errors, ErrorResponse{
-				Field:   strings.ToLower(fe.Field()),
+				// Mengubah nama field menjadi huruf kecil (misal: "Username" menjadi "username")
+				// untuk konsistensi dalam response JSON.
+				Field: strings.ToLower(fe.Field()),
+				// Memanggil fungsi kamus penerjemah untuk mendapatkan pesan Bahasa Indonesia.
 				Message: getErrorMessage(fe),
 			})
 		}
 	}
 
+	// Mengembalikan slice berisi daftar semua error yang sudah diterjemahkan.
 	return errors
 }
 
@@ -32,9 +42,7 @@ func TranslateError(err error) []ErrorResponse {
 func getErrorMessage(fe validator.FieldError) string {
 	switch fe.Tag() {
 	case "required":
-		return "Wajib diisi"
-	case "username":
-		return "Username tidak valid"
+		return "tidak boleh kosong"
 	case "min":
 		return fmt.Sprintf("Minimal harus %s karakter", fe.Param())
 	case "max":
