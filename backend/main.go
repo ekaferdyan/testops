@@ -2,8 +2,8 @@ package main
 
 import (
 	"log"
-	"testops-dashboard/backend/database"
-	"testops-dashboard/backend/routes"
+	"sambel-ulek/backend/database"
+	"sambel-ulek/backend/routes"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"

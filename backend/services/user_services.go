@@ -7,62 +7,79 @@ import (
 
 	// Semua import yang tidak terpakai akan dihapus
 	// "golang.org/x/crypto/bcrypt" - Dihapus
-	"testops-dashboard/backend/database"
-	"testops-dashboard/backend/models"
-	"testops-dashboard/backend/utils"
+	"sambel-ulek/backend/database"
+	"sambel-ulek/backend/models"
 
 	"golang.org/x/crypto/bcrypt"
 )
 
 // --- Definisi Error Bisnis (Tetap ada, untuk uji coba error handling) ---
 var (
-	ErrUsernameAlreadyExists = errors.New("username sudah terdaftar")
-	ErrUsernameSpecialChar   = errors.New("username tidak boleh mengandung spesial karakter")
+	ErrEmailAlreadyExists = errors.New("email sudah terdaftar")
+	ErrEmailNotValid      = errors.New("email tidak valid")
+	ErrPhoneAlreadyExists = errors.New("nomor handphone sudah terdaftar")
+	ErrNamespecialChar    = errors.New("nama tidak boleh mengandung spesial karakter")
+	ErrStatus             = errors.New("status harus active atau inactive")
+	ErrNameAngka          = errors.New("nama tidak boleh mengandung angka")
+	ErrPhoneNotValid      = errors.New("nomor handphone tidak valid")
+	ErrPhoneSpecialChar   = errors.New("nomor handphone tidak boleh mengandung spesial karakter")
+	ErrPhoneHuruf         = errors.New("nomor handphone tidak boleh mengandung huruf")
 )
 
 // --- DTO (Data Transfer Object) untuk Payload ---
 // Ini tetap harus ada, karena controller Anda menggunakannya
 type RegisterRequest struct {
-	Username string `json:"username"  validate:"required,min=6,max=30"`
+	Email    string `json:"Email"  validate:"required,min=6,max=30"`
 	Password string `json:"password" validate:"required,min=8,max=32"`
+	Name     string `json:"name" validate:"required,min=2,max=50"`
+	Phone    string `json:"phone" validate:"required,min=2,max=15"`
+	Status   string `json:"status"`
 }
 
 type LoginRequest struct {
-	Username string `json:"email"    validate:"required,email"`
+	Email    string `json:"email"    validate:"required,email"`
 	Password string `json:"password" validate:"required"`
 }
 
 // --- DTO (Data Transfer Object) untuk Response ---
 type UserResponse struct {
 	ID        uint      `json:"id"`
-	Username  string    `json:"username"`
+	Email     string    `json:"Email"`
+	Name      string    `json:"name"`
+	Phone     string    `json:"phone"`
+	Status    string    `json:"status"`
 	CreatedAt time.Time `json:"created_at"`
+	UpdateAt  time.Time `json:"update_at"`
 }
 
 // Wrapper Response fungsi nya untuk mengubah model user menjadi response dan bisa dicustomize untuk case ini password tidak kita tampilkan untuk menjaga kerahasiaan
 func ToUserResponse(users models.User) UserResponse {
 	return UserResponse{
 		ID:        users.ID,
-		Username:  users.Username,
+		Email:     users.Email,
+		Name:      users.Name,
+		Phone:     users.Phone,
+		Status:    users.Status,
 		CreatedAt: users.CreatedAt,
+		UpdateAt:  users.UpdateAt,
 	}
 }
 
 func RegisterUser(request RegisterRequest) (UserResponse, error) {
-	//1. Validasi Bisnis : Check Duplicate Username di Gorm
+	//1. Validasi Bisnis : Check Duplicate Email di Gorm
 	var existingUser models.User
 
-	//1. Verify Untuk Username Already Exist
-	result := database.ConnectDB().Where("username = ?", request.Username).First(&existingUser)
+	//1. Verify Untuk Email Already Exist
+	result := database.ConnectDB().Where("Email = ?", request.Email).First(&existingUser)
 	if result.RowsAffected > 0 {
-		return UserResponse{}, ErrUsernameAlreadyExists
+		return UserResponse{}, ErrEmailAlreadyExists
 	}
 
-	//2. Verify Username Mengandung Special Karakter
+	//2. Verify Email Mengandung Special Karakter
 	// Log hasil dari fungsi utilitas
-	if utils.ContainsSpecialCharacters(request.Username) {
-		return UserResponse{}, ErrUsernameSpecialChar
-	}
+	// if utils.ContainsSpecialCharacters(request.Email) {
+	// 	return UserResponse{}, ErrEmailSpecialChar
+	// }
 
 	//3. Logika Inti : Hashing Password
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(request.Password), bcrypt.DefaultCost)
@@ -72,7 +89,7 @@ func RegisterUser(request RegisterRequest) (UserResponse, error) {
 
 	//4. Logika Inti : Persiapan Data Model
 	newUser := models.User{
-		Username: request.Username,
+		Email:    request.Email,
 		Password: string(hashedPassword),
 		// CreatedAt, ID akan diisi oleh GORM
 	}

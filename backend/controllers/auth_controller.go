@@ -8,9 +8,9 @@ import (
 	"github.com/gofiber/fiber/v2"
 
 	// Impor "Penerjemah" dan "Pabrik" Validator kita
-	platformValidator "testops-dashboard/backend/platform/validator"
+	platformValidator "sambel-ulek/backend/platform/validator"
 	// Impor "Otak Bisnis" kita
-	"testops-dashboard/backend/services"
+	"sambel-ulek/backend/services"
 )
 
 // === KODE CONTROLLER ===
@@ -41,16 +41,16 @@ func RegisterUserHandler(c *fiber.Ctx) error {
 	userResponse, serviceErr := services.RegisterUser(request)
 
 	if serviceErr != nil {
-		//Validasi Username Contains Special Karakter
-		if errors.Is(serviceErr, services.ErrUsernameSpecialChar) {
-			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-				"message": "Registrasi gagal",
-				"errors":  serviceErr.Error(),
-			})
-		}
+		//Validasi Email Contains Special Karakter
+		// if errors.Is(serviceErr, services.ErrEmailSpecialChar) {
+		// 	return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+		// 		"message": "Registrasi gagal",
+		// 		"errors":  serviceErr.Error(),
+		// 	})
+		// }
 
-		//Validasi Username Already Exists
-		if errors.Is(serviceErr, services.ErrUsernameAlreadyExists) {
+		//Validasi Email Already Exists
+		if errors.Is(serviceErr, services.ErrEmailAlreadyExists) {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 				"message": "Registrasi gagal",
 				"errors":  serviceErr.Error(),

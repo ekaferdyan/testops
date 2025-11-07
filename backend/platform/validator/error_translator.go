@@ -25,7 +25,7 @@ func TranslateError(err error) []ErrorResponse {
 		for _, fe := range validationErrors {
 			// 3. Append Error: Menambahkan objek ErrorResponse baru ke slice 'errors'.
 			errors = append(errors, ErrorResponse{
-				// Mengubah nama field menjadi huruf kecil (misal: "Username" menjadi "username")
+				// Mengubah nama field menjadi huruf kecil (misal: "Email" menjadi "Email")
 				// untuk konsistensi dalam response JSON.
 				Field: strings.ToLower(fe.Field()),
 				// Memanggil fungsi kamus penerjemah untuk mendapatkan pesan Bahasa Indonesia.

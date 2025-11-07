@@ -2,7 +2,7 @@
 package routes
 
 import (
-	"testops-dashboard/backend/controllers"
+	"sambel-ulek/backend/controllers"
 
 	"github.com/gofiber/fiber/v2"
 )
