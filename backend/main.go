@@ -7,13 +7,23 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
+	"github.com/joho/godotenv"
 )
+
+// init() akan berjalan otomatis SEBELUM main()
+func init() {
+	err := godotenv.Load()
+	if err != nil {
+		log.Println("[WARN]: Error memuat file .env.")
+	}
+}
 
 func main() {
 	app := fiber.New()
 	app.Use(cors.New())
 
-	_ = database.ConnectDB()
+	// Function ConnectDB koneksi ke postgresSQL dan menyiapkan instance global
+	database.ConnectDB()
 
 	routes.SetupAuthRoutes(app)
 
