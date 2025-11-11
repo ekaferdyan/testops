@@ -41,16 +41,16 @@ func RegisterUserHandler(c *fiber.Ctx) error {
 	userResponse, serviceErr := services.RegisterUser(request)
 
 	if serviceErr != nil {
-		//Validasi Email Contains Special Karakter
-		// if errors.Is(serviceErr, services.ErrEmailSpecialChar) {
-		// 	return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-		// 		"message": "Registrasi gagal",
-		// 		"errors":  serviceErr.Error(),
-		// 	})
-		// }
-
 		//Validasi Email Already Exists
 		if errors.Is(serviceErr, services.ErrEmailAlreadyExists) {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"message": "Registrasi gagal",
+				"errors":  serviceErr.Error(),
+			})
+		}
+
+		//Validasi Phone Already Exists
+		if errors.Is(serviceErr, services.ErrPhoneAlreadyExists) {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 				"message": "Registrasi gagal",
 				"errors":  serviceErr.Error(),

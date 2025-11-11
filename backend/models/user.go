@@ -10,7 +10,7 @@ type User struct {
 	Phone     string `gorm:"type:varchar(15);unique;not null"`
 	Status    string `gorm:"type:varchar(10);default:inactive;not null"`
 	CreatedAt time.Time
-	UpdateAt  time.Time
+	UpdatedAt time.Time
 }
 
 // Tambahkan method ini jika nama skema Anda BUKAN "public"

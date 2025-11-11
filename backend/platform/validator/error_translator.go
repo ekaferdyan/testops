@@ -42,11 +42,19 @@ func TranslateError(err error) []ErrorResponse {
 func getErrorMessage(fe validator.FieldError) string {
 	switch fe.Tag() {
 	case "required":
-		return "tidak boleh kosong"
+		return "Field tidak boleh kosong"
 	case "min":
 		return fmt.Sprintf("Minimal harus %s karakter", fe.Param())
 	case "max":
 		return fmt.Sprintf("Maksimal %s karakter", fe.Param())
+	case "email":
+		return "Format tidak valid. Pastikan formatnya benar."
+	case "id_phone_not_valid":
+		return "Format tidak valid. Gunakan format yang sesuai, contoh: 08123456789 atau +628123456789."
+	case "name_special_character":
+		return "Nama tidak boleh mengandung spesial karakter"
+	case "name_contains_digits":
+		return "Nama tidak boleh mengandung angka"
 	default:
 		return "Input tidak valid"
 	}

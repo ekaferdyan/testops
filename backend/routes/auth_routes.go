@@ -11,8 +11,7 @@ func SetupAuthRoutes(app *fiber.App) {
 	api := app.Group("/api") // Grouping semua route di bawah /api
 
 	// Route Public (Tidak Perlu Login)
-	api.Post("/register", controllers.RegisterUserHandler)
-	api.Post("/login", controllers.Login)
+	api.Post("/v1/register", controllers.RegisterUserHandler)
 
 	// Contoh Route yang dilindungi oleh Middleware JWT
 	// api.Get("/user", middlewares.JWTAuth(), controllers.GetUser)
