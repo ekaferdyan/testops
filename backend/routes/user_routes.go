@@ -2,7 +2,7 @@
 package routes
 
 import (
-	"sambel-ulek/backend/controllers"
+	controllers "sambel-ulek/backend/internal/user"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -13,6 +13,4 @@ func SetupAuthRoutes(app *fiber.App) {
 	// Route Public (Tidak Perlu Login)
 	api.Post("/v1/register", controllers.RegisterUserHandler)
 
-	// Contoh Route yang dilindungi oleh Middleware JWT
-	// api.Get("/user", middlewares.JWTAuth(), controllers.GetUser)
 }

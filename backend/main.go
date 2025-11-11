@@ -22,7 +22,7 @@ func main() {
 	app := fiber.New()
 	app.Use(cors.New())
 
-	// Function ConnectDB koneksi ke postgresSQL dan menyiapkan instance global
+	// 1. Panggil ConnectDB() SATU KALI dan simpan koneksinya
 	database.ConnectDB()
 
 	routes.SetupAuthRoutes(app)
