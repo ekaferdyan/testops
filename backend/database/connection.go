@@ -9,7 +9,7 @@ import (
 	"gorm.io/gorm"
 )
 
-func ConnectDB() *gorm.DB {
+func ConnectDB() (*gorm.DB, error) {
 
 	// Membuat koneksi ke database
 	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable",
@@ -24,10 +24,11 @@ func ConnectDB() *gorm.DB {
 
 	if err != nil {
 		log.Fatal("❌ Failed to connect to database: ", err)
+		return nil, err
 	}
 
 	log.Println("✅ Database connected")
 
 	// 👈 KEMBALIKAN koneksi GORM
-	return db
+	return db, nil
 }

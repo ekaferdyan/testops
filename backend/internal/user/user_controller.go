@@ -5,16 +5,20 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 
+	// Impor DTO kita
+	"sambel-ulek/backend/internal/user/dto"
+
 	// Impor "Penerjemah" dan "Pabrik" Validator kita
+
 	platformValidator "sambel-ulek/backend/platform/validator"
 	// Impor "Otak Bisnis" kita
 )
 
 // === KODE CONTROLLER ===
 
-func RegisterUserHandler(c *fiber.Ctx) error {
+func registerUserHandler(c *fiber.Ctx) error {
 	//1. Parsing
-	var request registerRequest
+	var request dto.RegisterRequest
 	if err := c.BodyParser(&request); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"message": "Input JSON tidak valid",
