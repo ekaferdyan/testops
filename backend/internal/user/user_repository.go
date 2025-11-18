@@ -28,7 +28,7 @@ func NewUserRepository(db *gorm.DB) UserRepository {
 func (r *userRepository) IsEmailExists(email string) bool {
 	//Deskripsi Variable
 	var count int64
-	r.db.Model(&user{}).Where("phone = ?", email).Count(&count)
+	r.db.Model(&user{}).Where("email = ?", email).Count(&count)
 	return count > 0
 }
 

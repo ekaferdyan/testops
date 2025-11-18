@@ -25,13 +25,18 @@ func main() {
 	// 1. Panggil ConnectDB() SATU KALI dan simpan koneksinya
 	db, err := database.ConnectDB()
 
+	//2. Mengecek apakah koneksi sukses.
+	if err != nil {
+		log.Fatalf("Gagal terhubung ke Database: %v", err)
+	}
+
 	// Tambahkan route sederhana untuk testing server hidup
 	app.Get("/", func(c *fiber.Ctx) error {
 		return c.SendString("Server is running! Ready for API requests.")
 	})
 
 	// Register semua routes dari module user
-	user.SetupAuthRoutes(app)
+	user.SetupAuthRoutes(app, db)
 
 	// Hidupkan Server di port 3000
 	log.Println("Server starting on :3000...")
