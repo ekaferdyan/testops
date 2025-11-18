@@ -3,7 +3,7 @@ package main
 import (
 	"log"
 	"sambel-ulek/backend/database"
-	"sambel-ulek/backend/routes"
+	"sambel-ulek/backend/internal/user"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
@@ -23,14 +23,20 @@ func main() {
 	app.Use(cors.New())
 
 	// 1. Panggil ConnectDB() SATU KALI dan simpan koneksinya
-	database.ConnectDB()
+	db, err := database.ConnectDB()
 
-	routes.SetupAuthRoutes(app)
+	//2. Mengecek apakah koneksi sukses.
+	if err != nil {
+		log.Fatalf("Gagal terhubung ke Database: %v", err)
+	}
 
 	// Tambahkan route sederhana untuk testing server hidup
 	app.Get("/", func(c *fiber.Ctx) error {
 		return c.SendString("Server is running! Ready for API requests.")
 	})
+
+	// Register semua routes dari module user
+	user.SetupAuthRoutes(app, db)
 
 	// Hidupkan Server di port 3000
 	log.Println("Server starting on :3000...")

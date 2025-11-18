@@ -34,7 +34,7 @@ User dapat:
 
 ```
 
-testops-dashboard/
+sambel-ulek/
 ├── backend/
 │   ├── main.go
 │   ├── go.mod
@@ -46,6 +46,9 @@ testops-dashboard/
 │   │   ├── user.go
 │   │   ├── project.go
 │   │   └── report.go
+│   ├── platform/
+│   │   ├── validator
+│   │   │  ├── validator.go
 │   ├── controllers/
 │   │   ├── auth_controller.go
 │   │   ├── project_controller.go
@@ -120,7 +123,7 @@ CREATE TABLE test_reports (
 
 ```bash
 cd backend
-go mod init testops-dashboard/backend
+go mod init sambel-ulek/backend
 go get github.com/gofiber/fiber/v2
 go get github.com/gofiber/fiber/v2/middleware/cors
 go get gorm.io/gorm

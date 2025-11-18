@@ -2,11 +2,7 @@ package user
 
 import (
 	"errors"
-	"time"
-
-	// Semua import yang tidak terpakai akan dihapus
-	// "golang.org/x/crypto/bcrypt" - Dihapus
-	"sambel-ulek/backend/database"
+	"sambel-ulek/backend/internal/user/dto"
 	"sambel-ulek/backend/utils"
 
 	"golang.org/x/crypto/bcrypt"
@@ -14,35 +10,29 @@ import (
 
 // --- Definisi Error Bisnis (Tetap ada, untuk uji coba error handling) ---
 var (
-	errEmailAlreadyExists = errors.New("email sudah terdaftar")
-	errPhoneAlreadyExists = errors.New("nomor handphone sudah terdaftar")
-	errStatus             = errors.New("status harus active atau inactive")
+	ErrEmailAlreadyExists = errors.New("email sudah terdaftar")
+	ErrPhoneAlreadyExists = errors.New("nomor handphone sudah terdaftar")
+	ErrStatus             = errors.New("status harus active atau inactive")
 )
 
-// --- DTO (Data Transfer Object) untuk Payload ---
-// Ini tetap harus ada, karena controller Anda menggunakannya
-type registerRequest struct {
-	Email    string `json:"Email"  validate:"required,min=6,max=30,email"`
-	Password string `json:"password" validate:"required,min=8,max=32"`
-	Name     string `json:"name" validate:"required,min=2,max=50,name_contains_digits,name_special_character"`
-	Phone    string `json:"phone" validate:"required,min=2,max=15,id_phone_not_valid"`
-	Status   string `json:"status"`
+// Service Struct
+type UserService interface {
+	RegisterUser(request dto.RegisterRequest) (dto.UserResponse, error)
 }
 
-// --- DTO (Data Transfer Object) untuk Response ---
-type UserResponse struct {
-	ID        uint      `json:"id"`
-	Email     string    `json:"Email"`
-	Name      string    `json:"name"`
-	Phone     string    `json:"phone"`
-	Status    string    `json:"status"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
+// IMPLEMENTATION
+type userService struct {
+	repo UserRepository
+}
+
+// Constructor DI
+func NewUserService(repo UserRepository) UserService {
+	return &userService{repo: repo}
 }
 
 // Wrapper Response fungsi nya untuk mengubah model user menjadi response dan bisa dicustomize untuk case ini password tidak kita tampilkan untuk menjaga kerahasiaan
-func ToUserResponse(users user) UserResponse {
-	return UserResponse{
+func ToUserResponse(users User) dto.UserResponse {
+	return dto.UserResponse{
 		ID:        users.ID,
 		Email:     users.Email,
 		Name:      users.Name,
@@ -53,40 +43,35 @@ func ToUserResponse(users user) UserResponse {
 	}
 }
 
-func RegisterUser(request registerRequest) (UserResponse, error) {
-	//1. Validasi Bisnis : Check Duplicate Email di Gorm
-	var existingUser user
-
+func (s *userService) RegisterUser(request dto.RegisterRequest) (dto.UserResponse, error) {
 	//2. Normalized Phone Number
 	request.Phone = utils.NormalizePhone(request.Phone)
 
 	//3. Verify Untuk Email Already Exist
-	result := database.ConnectDB().Where("Email = ?", request.Email).First(&existingUser)
-	if result.RowsAffected > 0 {
-		return UserResponse{}, errEmailAlreadyExists
+	if s.repo.IsEmailExists(request.Email) {
+		return dto.UserResponse{}, ErrEmailAlreadyExists
 	}
 
 	//4. Verify Untuk Phone Already Exist
-	result = database.ConnectDB().Where("Phone = ?", request.Phone).First(&existingUser)
-	if result.RowsAffected > 0 {
-		return UserResponse{}, errPhoneAlreadyExists
+	if s.repo.IsPhoneExists(request.Phone) {
+		return dto.UserResponse{}, ErrPhoneAlreadyExists
 	}
 
 	//5. Verify Status
 	if request.Status != "" {
 		if request.Status != "active" && request.Status != "inactive" {
-			return UserResponse{}, errStatus
+			return dto.UserResponse{}, ErrStatus
 		}
 	}
 
 	//6. Logika Inti : Hashing Password
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(request.Password), bcrypt.DefaultCost)
 	if err != nil {
-		return UserResponse{}, err
+		return dto.UserResponse{}, err
 	}
 
 	//7. Logika Inti : Persiapan Data Model
-	newUser := user{
+	newUser := &User{
 		Name:     request.Name,
 		Email:    request.Email,
 		Password: string(hashedPassword),
@@ -96,10 +81,10 @@ func RegisterUser(request registerRequest) (UserResponse, error) {
 	}
 
 	//8. Logika Inti : Simpan ke Database
-	if result := database.ConnectDB().Create(&newUser); result.Error != nil {
-		return UserResponse{}, result.Error // Error saat menyimpan
+	if err := s.repo.CreateUser(newUser); err != nil {
+		return dto.UserResponse{}, err
 	}
 
 	//9. Kembalikan response yang sudah diformat
-	return ToUserResponse(newUser), nil
+	return ToUserResponse(*newUser), nil
 }
