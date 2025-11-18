@@ -2,7 +2,7 @@ package user
 
 import "time"
 
-type user struct {
+type User struct {
 	ID        uint   `gorm:"primaryKey"`
 	Email     string `gorm:"type:varchar(50);unique;not null"`
 	Name      string `gorm:"type:varchar(50);not null"`
@@ -15,6 +15,6 @@ type user struct {
 
 // Tambahkan method ini jika nama skema Anda BUKAN "public"
 // Ganti "data" dengan nama skema Anda yang sebenarnya.
-func (user) TableName() string {
+func (User) TableName() string {
 	return "AUTHENTICATION.users" // <--- GANTI 'data' DENGAN NAMA SKEMA ANDA
 }

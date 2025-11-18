@@ -53,7 +53,7 @@ func (c *UserController) RegisterUserHandler(ctx *fiber.Ctx) error {
 
 	if serviceErr != nil {
 		//Validasi Email Already Exists
-		if errors.Is(serviceErr, errEmailAlreadyExists) {
+		if errors.Is(serviceErr, ErrEmailAlreadyExists) {
 			return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 				"message": "Registrasi gagal",
 				"errors":  serviceErr.Error(),
@@ -61,7 +61,7 @@ func (c *UserController) RegisterUserHandler(ctx *fiber.Ctx) error {
 		}
 
 		//Validasi Phone Already Exists
-		if errors.Is(serviceErr, errPhoneAlreadyExists) {
+		if errors.Is(serviceErr, ErrPhoneAlreadyExists) {
 			return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 				"message": "Registrasi gagal",
 				"errors":  serviceErr.Error(),

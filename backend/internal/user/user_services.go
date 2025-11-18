@@ -10,9 +10,9 @@ import (
 
 // --- Definisi Error Bisnis (Tetap ada, untuk uji coba error handling) ---
 var (
-	errEmailAlreadyExists = errors.New("email sudah terdaftar")
-	errPhoneAlreadyExists = errors.New("nomor handphone sudah terdaftar")
-	errStatus             = errors.New("status harus active atau inactive")
+	ErrEmailAlreadyExists = errors.New("email sudah terdaftar")
+	ErrPhoneAlreadyExists = errors.New("nomor handphone sudah terdaftar")
+	ErrStatus             = errors.New("status harus active atau inactive")
 )
 
 // Service Struct
@@ -31,7 +31,7 @@ func NewUserService(repo UserRepository) UserService {
 }
 
 // Wrapper Response fungsi nya untuk mengubah model user menjadi response dan bisa dicustomize untuk case ini password tidak kita tampilkan untuk menjaga kerahasiaan
-func ToUserResponse(users user) dto.UserResponse {
+func ToUserResponse(users User) dto.UserResponse {
 	return dto.UserResponse{
 		ID:        users.ID,
 		Email:     users.Email,
@@ -49,18 +49,18 @@ func (s *userService) RegisterUser(request dto.RegisterRequest) (dto.UserRespons
 
 	//3. Verify Untuk Email Already Exist
 	if s.repo.IsEmailExists(request.Email) {
-		return dto.UserResponse{}, errEmailAlreadyExists
+		return dto.UserResponse{}, ErrEmailAlreadyExists
 	}
 
 	//4. Verify Untuk Phone Already Exist
 	if s.repo.IsPhoneExists(request.Phone) {
-		return dto.UserResponse{}, errPhoneAlreadyExists
+		return dto.UserResponse{}, ErrPhoneAlreadyExists
 	}
 
 	//5. Verify Status
 	if request.Status != "" {
 		if request.Status != "active" && request.Status != "inactive" {
-			return dto.UserResponse{}, errStatus
+			return dto.UserResponse{}, ErrStatus
 		}
 	}
 
@@ -71,7 +71,7 @@ func (s *userService) RegisterUser(request dto.RegisterRequest) (dto.UserRespons
 	}
 
 	//7. Logika Inti : Persiapan Data Model
-	newUser := user{
+	newUser := &User{
 		Name:     request.Name,
 		Email:    request.Email,
 		Password: string(hashedPassword),
@@ -86,5 +86,5 @@ func (s *userService) RegisterUser(request dto.RegisterRequest) (dto.UserRespons
 	}
 
 	//9. Kembalikan response yang sudah diformat
-	return ToUserResponse(newUser), nil
+	return ToUserResponse(*newUser), nil
 }

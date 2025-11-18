@@ -8,7 +8,7 @@ import (
 type UserRepository interface {
 	IsEmailExists(email string) bool
 	IsPhoneExists(phone string) bool
-	CreateUser(u user) error
+	CreateUser(u *User) error
 }
 
 // -----------------------------------------------------
@@ -28,18 +28,18 @@ func NewUserRepository(db *gorm.DB) UserRepository {
 func (r *userRepository) IsEmailExists(email string) bool {
 	//Deskripsi Variable
 	var count int64
-	r.db.Model(&user{}).Where("email = ?", email).Count(&count)
+	r.db.Model(&User{}).Where("email = ?", email).Count(&count)
 	return count > 0
 }
 
 func (r *userRepository) IsPhoneExists(phone string) bool {
 	//Deskripsi Variable
 	var count int64
-	r.db.Model(&user{}).Where("phone = ?", phone).Count(&count)
+	r.db.Model(&User{}).Where("phone = ?", phone).Count(&count)
 	return count > 0
 }
 
-func (r *userRepository) CreateUser(u user) error {
+func (r *userRepository) CreateUser(u *User) error {
 	result := r.db.Create(&u)
 	return result.Error
 }
